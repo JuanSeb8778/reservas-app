@@ -1,0 +1,19 @@
+# Entorno y secretos
+.env
+CLAUDE.local.md
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+
+# Sistema / editores
+.DS_Store
+.vscode/
+.idea/

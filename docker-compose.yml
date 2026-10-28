@@ -1,0 +1,50 @@
+# Levanta todo el proyecto con:  docker compose up --build
+#   Frontend: http://localhost:5173
+#   API:      http://localhost:8000  (docs en /docs)
+#   Postgres: localhost:5432
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-reservas}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-reservas}
+      POSTGRES_DB: ${POSTGRES_DB:-reservas}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./backend
+    env_file: .env
+    environment:
+      # Dentro de Docker, el host de la base de datos es "db" (el nombre del servicio)
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-reservas}:${POSTGRES_PASSWORD:-reservas}@db:5432/${POSTGRES_DB:-reservas}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app # el código se monta para que los cambios se apliquen al instante
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    environment:
+      API_PROXY_TARGET: http://backend:8000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # conserva los node_modules de la imagen
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
