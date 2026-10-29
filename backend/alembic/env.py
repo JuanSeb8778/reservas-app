@@ -17,7 +17,8 @@ config.set_main_option("sqlalchemy.url", get_settings().database_url)
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    # disable_existing_loggers=False: si se llama desde pytest, no apaga sus loggers.
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 # Metadata de los modelos: permite `alembic revision --autogenerate`
 target_metadata = Base.metadata
@@ -59,6 +60,15 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    # Los tests pasan una conexión ya abierta a la base de pruebas (receta "Sharing a
+    # Connection" de Alembic). Desde la CLI no hay ninguna y se crea un engine como siempre.
+    connection = config.attributes.get("connection")
+    if connection is not None:
+        context.configure(connection=connection, target_metadata=target_metadata)
+        with context.begin_transaction():
+            context.run_migrations()
+        return
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
