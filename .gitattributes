@@ -1,0 +1,3 @@
+# Finales de línea LF en el repositorio para todos los archivos de texto, sin depender
+# de la configuración de Git de cada máquina (Windows usa CRLF por defecto).
+* text=auto eol=lf
