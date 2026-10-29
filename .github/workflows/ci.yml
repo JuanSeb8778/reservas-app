@@ -55,7 +55,7 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: ruff check .
       - run: ruff format --check .
-      - run: pytest
+      - run: pytest -v
 
   frontend:
     name: Frontend (oxlint + build)
