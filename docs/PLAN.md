@@ -50,6 +50,8 @@ Implementada a mano para aprender cómo funciona:
 - [x] Test del endpoint de salud
 
 ### Fase 1 – Versión mínima
+- [x] Infraestructura de tests: base de datos `*_test` separada, recreada y migrada en cada
+      ejecución; cada test en una transacción que se deshace (`tests/conftest.py`)
 - [ ] Modelo `User` + migración
 - [ ] Autenticación completa (registro, login, refresh, logout, me) + tests
 - [ ] Páginas de registro e inicio de sesión (React Hook Form + Zod), contexto de sesión y rutas protegidas
@@ -69,7 +71,8 @@ Implementada a mano para aprender cómo funciona:
 
 ### Fase 3 – Calidad y despliegue
 - [ ] Cobertura de tests razonable en el backend; tests de componentes clave en el frontend (Vitest)
-- [ ] GitHub Actions: lint + tests en cada push y pull request
+- [x] GitHub Actions: lint + tests en cada push y pull request (adelantado a la Fase 1,
+      `.github/workflows/ci.yml`)
 - [ ] Despliegue: backend + Postgres en Render o Railway, frontend en Vercel
 - [ ] README final con capturas, enlace a la demo, diagrama de arquitectura y decisiones técnicas
 
