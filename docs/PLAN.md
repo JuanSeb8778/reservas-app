@@ -71,7 +71,8 @@ Implementada a mano para aprender cómo funciona:
 
 ### Fase 3 – Calidad y despliegue
 - [ ] Cobertura de tests razonable en el backend; tests de componentes clave en el frontend (Vitest)
-- [ ] GitHub Actions: lint + tests en cada push y pull request
+- [x] GitHub Actions: lint + tests en cada push y pull request (adelantado a la Fase 1,
+      `.github/workflows/ci.yml`)
 - [ ] Despliegue: backend + Postgres en Render o Railway, frontend en Vercel
 - [ ] README final con capturas, enlace a la demo, diagrama de arquitectura y decisiones técnicas
 
