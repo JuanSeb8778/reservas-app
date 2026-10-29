@@ -52,7 +52,7 @@ Implementada a mano para aprender cómo funciona:
 ### Fase 1 – Versión mínima
 - [x] Infraestructura de tests: base de datos `*_test` separada, recreada y migrada en cada
       ejecución; cada test en una transacción que se deshace (`tests/conftest.py`)
-- [ ] Modelo `User` + migración
+- [x] Modelo `User` + migración
 - [ ] Autenticación completa (registro, login, refresh, logout, me) + tests
 - [ ] Páginas de registro e inicio de sesión (React Hook Form + Zod), contexto de sesión y rutas protegidas
 - [ ] Modelos `Service` y `BusinessHours` + CRUD solo para admin + tests
