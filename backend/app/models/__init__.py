@@ -1,9 +1,8 @@
 """Modelos de la base de datos.
 
-Fase 1: aquí irán User, Service, Availability y Booking.
-Importa cada modelo en este archivo para que Alembic los detecte, por ejemplo:
-
-    from app.models.user import User  # noqa: F401
+Importa cada modelo nuevo en este archivo para que Alembic lo detecte al generar migraciones.
 """
 
 from app.db.base import Base  # noqa: F401
+from app.models.enums import UserRole  # noqa: F401
+from app.models.user import User  # noqa: F401
