@@ -3,9 +3,12 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router'
 
+import { listenForSessionExpiry } from './features/auth/session'
 import './index.css'
 import { queryClient } from './lib/queryClient'
 import { router } from './router'
+
+listenForSessionExpiry(queryClient)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

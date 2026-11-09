@@ -64,6 +64,10 @@ const sessionExpiredListeners = new Set<() => void>()
 // (credenciales incorrectas, no hay sesión) o renovar crearía un bucle.
 const NO_REFRESH_PATHS = new Set(['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout'])
 
+export function hasAccessToken() {
+  return accessToken !== null
+}
+
 export function setAccessToken(token: string) {
   accessToken = token
 }
