@@ -19,13 +19,22 @@ export function getEmail(state: unknown) {
 }
 
 // Página a la que volver después de iniciar sesión. Solo se aceptan rutas internas:
-// "/mis-citas" sí; "https://otra.web" o "//otra.web" no. Así un enlace manipulado no puede
-// llevar al usuario a otra web justo después de entrar (open redirect).
+// "/mis-citas" sí; "https://otra.web", "//otra.web" o "/\t/otra.web" no. Así un enlace
+// manipulado no puede llevar al usuario a otra web justo después de entrar (open redirect).
+// En vez de buscar patrones peligrosos (siempre se escapa alguno), se deja que el propio
+// navegador interprete la ruta con URL y se comprueba que siga en este mismo sitio.
 export function getFrom(state: unknown): string | undefined {
   const from = readString(state, 'from')
-  if (!from || !from.startsWith('/') || from.startsWith('//') || from.startsWith('/\\')) return undefined
-  if (from.startsWith('/login') || from.startsWith('/registro')) return undefined
-  return from
+  // Espacios, caracteres de control y "\" no aparecen en rutas legítimas de la app.
+  if (!from || !from.startsWith('/') || /[\s\\\p{Cc}]/u.test(from)) return undefined
+  try {
+    const url = new URL(from, window.location.origin)
+    if (url.origin !== window.location.origin) return undefined
+    if (/^\/(login|registro)\/?$/.test(url.pathname)) return undefined
+    return url.pathname + url.search + url.hash
+  } catch {
+    return undefined
+  }
 }
 
 export function getRedirectTarget(state: unknown) {
