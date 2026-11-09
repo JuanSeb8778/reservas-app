@@ -70,6 +70,15 @@ export function CircleIcon({ className = 'size-4' }: IconProps) {
   )
 }
 
+export function ClockIcon({ className = 'size-4' }: IconProps) {
+  return (
+    <svg {...svgProps} className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  )
+}
+
 // Marca: una hoja de agenda con la hora confirmada.
 export function BrandIcon({ className = 'size-6' }: IconProps) {
   return (
