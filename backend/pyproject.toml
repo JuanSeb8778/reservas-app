@@ -8,3 +8,7 @@ target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# conftest fija JWT_SECRET antes de importar la app (imports después de código a propósito).
+"tests/conftest.py" = ["E402"]

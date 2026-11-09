@@ -40,6 +40,17 @@ Implementada a mano para aprender cómo funciona:
   `POST /api/auth/logout`, `GET /api/auth/me`.
 - Dependencias de FastAPI: `get_current_user` y `require_admin`.
 
+Limitaciones conocidas y pendientes (decididas al implementar la autenticación):
+- Los tokens no se guardan en la base de datos: el logout solo borra la cookie y un refresh token
+  robado vale hasta que caduca. Revocación real (tabla de `jti` o `token_version` en `users`)
+  → Fase 4.
+- Sin límite de intentos en `/login` y `/register` (rate limiting) → Fase 3.
+- El registro devuelve 409 si el email existe, lo que permite saber qué emails están registrados.
+  Es lo habitual en este tipo de app; se acepta.
+- **Despliegue:** con frontend y API en dominios distintos (Vercel + Render), `SameSite=Lax`
+  impide enviar la cookie. Habrá que servir la API bajo el mismo dominio (rewrite de `/api` en
+  Vercel) o usar `SameSite=None; Secure` con protección CSRF.
+
 ## Fases
 
 ### Fase 0 – Preparación ✅
@@ -53,7 +64,7 @@ Implementada a mano para aprender cómo funciona:
 - [x] Infraestructura de tests: base de datos `*_test` separada, recreada y migrada en cada
       ejecución; cada test en una transacción que se deshace (`tests/conftest.py`)
 - [x] Modelo `User` + migración
-- [ ] Autenticación completa (registro, login, refresh, logout, me) + tests
+- [x] Autenticación completa (registro, login, refresh, logout, me) + tests
 - [ ] Páginas de registro e inicio de sesión (React Hook Form + Zod), contexto de sesión y rutas protegidas
 - [ ] Modelos `Service` y `BusinessHours` + CRUD solo para admin + tests
 - [ ] Página pública de servicios

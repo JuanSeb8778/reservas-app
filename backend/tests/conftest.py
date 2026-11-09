@@ -10,7 +10,14 @@ en el mismo servidor de PostgreSQL. En cada ejecución de pytest:
    escribe un test nunca lo ve el siguiente.
 """
 
-from collections.abc import Generator
+import os
+
+# La app exige JWT_SECRET al importarse (ver Settings). Se fija aquí, antes de importar `app`,
+# para que los tests no dependan del .env. Si ya existe en el entorno (p. ej. en Docker), se
+# respeta. Las variables de entorno tienen prioridad sobre el archivo .env.
+os.environ.setdefault("JWT_SECRET", "clave-solo-para-tests-no-usar-en-produccion")
+
+from collections.abc import Callable, Generator
 from pathlib import Path
 
 import pytest
@@ -21,8 +28,13 @@ from sqlalchemy.orm import Session
 
 from alembic import command
 from app.core.config import get_settings
+from app.core.security import hash_password
 from app.db.session import get_db
 from app.main import app
+from app.models import User, UserRole
+
+# Contraseña de los usuarios que crea la fixture `create_user`.
+DEFAULT_PASSWORD = "contrasena-segura"
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 
@@ -119,3 +131,26 @@ def client(db_session: Session) -> Generator[TestClient]:
     finally:
         # Aunque el test falle, el siguiente no debe heredar el override.
         app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def create_user(db_session: Session) -> Callable[..., User]:
+    """Fábrica de usuarios ya guardados (con la contraseña hasheada de verdad).
+
+    Uso: `create_user()`, `create_user(email="luis@example.com", role=UserRole.ADMIN)`.
+    """
+
+    def _create_user(
+        email: str = "ana@example.com",
+        password: str = DEFAULT_PASSWORD,
+        full_name: str = "Ana Pérez",
+        role: UserRole = UserRole.CLIENT,
+    ) -> User:
+        user = User(
+            email=email, hashed_password=hash_password(password), full_name=full_name, role=role
+        )
+        db_session.add(user)
+        db_session.flush()
+        return user
+
+    return _create_user
