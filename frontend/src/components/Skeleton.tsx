@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import { Page } from './Page'
+
 // Bloque gris con un brillo que lo recorre. Es decorativo (aria-hidden): quien anuncia la
 // carga es el LoadingRegion que lo envuelve. Con "reducir movimiento" queda estático.
 export function Skeleton({ className = '' }: { className?: string }) {
@@ -29,5 +31,28 @@ export function LoadingRegion({
       </span>
       {children}
     </div>
+  )
+}
+
+// Página protegida mientras se comprueba la sesión: título, subtítulo y una hoja de agenda.
+export function PageSkeleton() {
+  return (
+    <Page className="max-w-3xl">
+      <LoadingRegion label="Cargando…" className="grid gap-8">
+        <div className="grid gap-3">
+          <Skeleton className="h-10 w-56" />
+          <Skeleton className="h-4 w-80 max-w-full" />
+        </div>
+        <div className="grid gap-4 rounded-panel border border-line bg-surface p-5 sm:p-8">
+          <Skeleton className="h-7 w-3/4" />
+          {[0, 1, 2, 3].map((row) => (
+            <div key={row} className="grid grid-cols-[4.5rem_minmax(0,1fr)] items-center gap-3">
+              <Skeleton className="h-4 w-12" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          ))}
+        </div>
+      </LoadingRegion>
+    </Page>
   )
 }

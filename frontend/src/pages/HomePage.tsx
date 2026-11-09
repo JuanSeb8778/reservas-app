@@ -1,11 +1,16 @@
+import { useLocation } from 'react-router'
+
+import { Notice } from '../components/Notice'
 import { Page } from '../components/Page'
 import { StatusRow } from '../components/StatusRow'
 import { useHealth } from '../features/health/useHealth'
+import { getNotice } from '../lib/navigationState'
 import { useDelayedFlag } from '../lib/useDelayedFlag'
 import { useDocumentTitle } from '../lib/useDocumentTitle'
 
 export function HomePage() {
   useDocumentTitle('Inicio')
+  const notice = getNotice(useLocation().state)
   const { data, isPending, isError } = useHealth()
   const showSkeleton = useDelayedFlag(isPending)
 
@@ -24,6 +29,8 @@ export function HomePage() {
           de datos están conectados.
         </p>
       </div>
+
+      {notice && <Notice>{notice}</Notice>}
 
       <div
         className="rounded-panel border border-line bg-surface px-5"
