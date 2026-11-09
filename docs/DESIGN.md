@@ -24,7 +24,9 @@ vista y nada genérica. Los tokens viven en `frontend/src/index.css` (`@theme` d
 
 - **Bricolage Grotesque** (títulos y marca), con eje óptico al máximo (`opsz 96`) y tracking ajustado.
 - **Figtree** (todo lo demás). Las horas usan `tabular-nums` para que no "bailen".
-- Se cargan desde Google Fonts en `index.html` (sin dependencias npm).
+- Se alojan con la propia app (`@fontsource-variable/bricolage-grotesque` y
+  `@fontsource-variable/figtree`, importadas en `main.tsx`), no desde Google Fonts: así no se
+  envía la IP de los visitantes a terceros y se puede usar una CSP estricta.
 
 ## Reglas
 

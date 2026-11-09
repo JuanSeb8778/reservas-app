@@ -21,8 +21,9 @@
   --color-taken: #6b7189; /* horas ocupadas: siempre tachadas, nunca solo el color */
   --color-skeleton: #e4e6ee;
 
-  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
-  --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  /* Fuentes alojadas con la app (@fontsource-variable, importadas en main.tsx) */
+  --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Figtree Variable', ui-sans-serif, system-ui, sans-serif;
 
   --radius-control: 8px;
   --radius-panel: 16px;

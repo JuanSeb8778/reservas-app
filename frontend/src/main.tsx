@@ -5,6 +5,11 @@ import { createRoot } from 'react-dom/client'
 // cual la opción navigate(..., { flushSync: true }) del logout no tendría efecto.
 import { RouterProvider } from 'react-router/dom'
 
+// Fuentes servidas desde nuestro propio servidor (no desde Google Fonts): así la IP de los
+// visitantes no se envía a terceros. opsz.css incluye los ejes de tamaño óptico y de peso.
+import '@fontsource-variable/bricolage-grotesque/opsz.css'
+import '@fontsource-variable/figtree'
+
 import { listenForSessionExpiry } from './features/auth/session'
 import './index.css'
 import { queryClient } from './lib/queryClient'
