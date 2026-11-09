@@ -27,7 +27,6 @@ export function LoginPage() {
     register,
     handleSubmit,
     setValue,
-    setFocus,
     formState: { errors },
   } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -50,10 +49,10 @@ export function LoginPage() {
     if (login.isPending) return
     login.mutate(values, {
       onError: (error) => {
-        // Credenciales incorrectas: se borra la contraseña y se deja el correo.
+        // Credenciales incorrectas: se borra la contraseña y se deja el correo. El foco no
+        // se mueve: así el lector de pantalla lee la alerta completa sin interrupciones.
         if (error instanceof ApiError && error.status === 401) {
           setValue('password', '')
-          setFocus('password')
         }
       },
     })

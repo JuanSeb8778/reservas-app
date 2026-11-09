@@ -17,7 +17,8 @@ export function MyBookingsPage() {
       <h1 tabIndex={-1} className="text-4xl font-bold">
         Mis citas
       </h1>
-      <p className="mt-2 text-muted">
+      {/* overflow-wrap:anywhere: un nombre larguísimo sin espacios no desborda la pantalla. */}
+      <p className="mt-2 text-muted [overflow-wrap:anywhere]">
         {firstName ? `Hola, ${firstName}. ` : ''}Aquí verás las citas que reserves.
       </p>
 

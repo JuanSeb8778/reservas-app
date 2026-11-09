@@ -8,7 +8,7 @@ import { AgendaPreview } from './AgendaPreview'
 // - Escritorio (≥1024 px): formulario a la izquierda y la agenda decorativa a la derecha.
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="grid lg:min-h-[calc(100dvh-4rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+    <div className="grid lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
       <div className="flex justify-center px-4 pt-8 pb-16 sm:px-6 sm:pt-14 lg:items-center lg:justify-end lg:px-16 xl:px-24">
         <div className="w-full max-w-md lg:max-w-sm">
           <SlotStrip />

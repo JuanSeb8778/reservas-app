@@ -114,7 +114,7 @@ export function Layout() {
 
       {/* Cada página decide su ancho (Page para las normales, AuthLayout para el acceso).
           tabIndex -1: permite que el enlace "Saltar al contenido" le mueva el foco. */}
-      <main id="main" tabIndex={-1} className="flex-1">
+      <main id="main" tabIndex={-1} className="flex flex-1 flex-col">
         <Outlet />
       </main>
 

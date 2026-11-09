@@ -19,6 +19,11 @@ import { useDocumentTitle } from '../lib/useDocumentTitle'
 const linkClasses =
   'font-semibold text-tinta underline decoration-2 underline-offset-4 hover:text-tinta-hover'
 
+// El mensaje de la API puede venir con o sin punto final; aquí va seguido de otra frase.
+function withPeriod(text = '') {
+  return text.endsWith('.') ? text : `${text}.`
+}
+
 export function RegisterPage() {
   useDocumentTitle('Crear cuenta')
   const location = useLocation()
@@ -105,7 +110,7 @@ export function RegisterPage() {
           error={
             emailConflict ? (
               <>
-                {errors.email?.message}.{' '}
+                {withPeriod(errors.email?.message)}{' '}
                 <Link to="/login" state={{ email: getValues('email'), from }} className={linkClasses}>
                   ¿Quieres iniciar sesión?
                 </Link>

@@ -37,13 +37,16 @@ export function Button({
       onClick={handleClick}
       className={buttonClasses(variant, className)}
     >
-      {/* Las dos etiquetas ocupan la misma celda: el botón no cambia de ancho al cambiar el texto. */}
+      {/* Las dos etiquetas ocupan la misma celda: el botón no cambia de ancho al cambiar el
+          texto. La de "pendiente" es solo visual (aria-hidden) y la normal se oculta con
+          opacity (no con visibility), así el nombre del botón para lectores de pantalla no
+          cambia; el progreso lo anuncia un role="status" de la página. */}
       <span className="grid">
-        <span className={`col-start-1 row-start-1 ${pending && pendingLabel ? 'invisible' : ''}`}>
+        <span className={`col-start-1 row-start-1 ${pending && pendingLabel ? 'opacity-0' : ''}`}>
           {children}
         </span>
         {pendingLabel && (
-          <span className={`col-start-1 row-start-1 ${pending ? '' : 'invisible'}`}>
+          <span aria-hidden="true" className={`col-start-1 row-start-1 ${pending ? '' : 'invisible'}`}>
             {pendingLabel}
           </span>
         )}
