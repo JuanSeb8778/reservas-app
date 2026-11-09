@@ -75,6 +75,7 @@ npm run lint
 - Los tipos de TypeScript que reflejan respuestas de la API deben coincidir con los esquemas de
   Pydantic del backend.
 - Estilos solo con clases de Tailwind. Interfaz accesible (labels en formularios, foco visible).
+- Diseño visual "Tinta y resaltador": tokens, reglas y skeletons en @docs/DESIGN.md.
 
 ## Seguridad
 

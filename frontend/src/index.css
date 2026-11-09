@@ -1,5 +1,98 @@
 @import 'tailwindcss';
 
-body {
-  @apply bg-stone-50 text-stone-900 antialiased;
+/* Dirección visual "Tinta y resaltador": la agenda de papel del negocio. Tinta azul para las
+   acciones y resaltador amarillo para lo importante (la hora elegida, una palabra del título).
+   Referencia completa en docs/DESIGN.md. */
+@theme {
+  --color-paper: #f4f5f8; /* fondo de la página */
+  --color-surface: #ffffff; /* paneles, cabecera, campos */
+  --color-ink: #151a33; /* texto principal */
+  --color-muted: #555c78; /* texto secundario (6:1 sobre paper) */
+  --color-line: #e2e4ec; /* separadores decorativos */
+  --color-field: #7c829a; /* borde de campos: 3.8:1, cumple el 3:1 de WCAG para controles */
+  --color-tinta: #2a35a8; /* acciones principales y foco */
+  --color-tinta-hover: #232c8c;
+  --color-danger: #b42318;
+  --color-danger-soft: #fef3f2;
+  --color-highlight: #ffe15a; /* resaltador: usar como mucho 1–2 veces por pantalla */
+  --color-highlight-edge: #e9c622;
+  --color-highlight-soft: #fff7cc;
+  --color-ok: #1f7a55; /* estados correctos (5.4:1 sobre blanco) */
+  --color-taken: #6b7189; /* horas ocupadas: siempre tachadas, nunca solo el color */
+  --color-skeleton: #e4e6ee;
+
+  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-control: 8px;
+  --radius-panel: 16px;
+
+  --animate-shimmer: shimmer 1.4s ease-in-out infinite;
+
+  @keyframes shimmer {
+    from {
+      translate: -100% 0;
+    }
+    to {
+      translate: 100% 0;
+    }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-paper font-sans text-ink antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-variation-settings: 'opsz' 96;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  /* Foco visible en tinta (9.7:1 sobre blanco). Solo con teclado (:focus-visible). */
+  :focus-visible {
+    outline: 2px solid var(--color-tinta);
+    outline-offset: 2px;
+  }
+
+  /* Los títulos reciben el foco por programa al cambiar de página (para lectores de
+     pantalla); no son interactivos, así que no necesitan el anillo. */
+  [tabindex='-1']:focus {
+    outline: none;
+  }
+
+  ::selection {
+    background: var(--color-highlight);
+    color: var(--color-ink);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Trazo de resaltador: un poco inclinado en los bordes y cubriendo la parte baja del texto,
+   como cuando se marca algo en una agenda. */
+@utility marker {
+  background-image: linear-gradient(
+    100deg,
+    transparent 0 2%,
+    var(--color-highlight) 4% 96%,
+    transparent 98%
+  );
+  background-repeat: no-repeat;
+  background-size: 100% 72%;
+  background-position: 0 75%;
+  padding-inline: 0.12em;
+  box-decoration-break: clone;
 }
