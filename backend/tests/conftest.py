@@ -10,6 +10,13 @@ en el mismo servidor de PostgreSQL. En cada ejecución de pytest:
    escribe un test nunca lo ve el siguiente.
 """
 
+import os
+
+# La app exige JWT_SECRET al importarse (ver Settings). Se fija aquí, antes de importar `app`,
+# para que los tests no dependan del .env. Si ya existe en el entorno (p. ej. en Docker), se
+# respeta. Las variables de entorno tienen prioridad sobre el archivo .env.
+os.environ.setdefault("JWT_SECRET", "clave-solo-para-tests-no-usar-en-produccion")
+
 from collections.abc import Generator
 from pathlib import Path
 
