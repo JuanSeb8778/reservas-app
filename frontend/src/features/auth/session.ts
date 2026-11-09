@@ -27,10 +27,15 @@ export async function loadSession(): Promise<User | null> {
   }
 }
 
-// Borra de la caché todo lo que pertenece al usuario (sus citas, etc.) y marca la sesión
-// como anónima. Se usa al cerrar sesión y cuando la sesión caduca.
+// Convención: los datos de un usuario concreto (sus citas, etc.) usan claves que empiezan
+// por 'me', p. ej. ['me', 'bookings']. Los datos públicos (servicios, estado de la API) no.
+export const userDataKey = ['me'] as const
+
+// Borra de la caché los datos del usuario y marca la sesión como anónima. Se usa al cerrar
+// sesión y cuando la sesión caduca. Los datos públicos se conservan (no hace falta volver a
+// pedirlos).
 export function clearSessionData(queryClient: QueryClient) {
-  queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== 'auth' })
+  queryClient.removeQueries({ queryKey: userDataKey })
   queryClient.setQueryData(sessionQueryKey, null)
 }
 

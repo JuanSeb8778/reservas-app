@@ -10,9 +10,12 @@ function shouldRetry(failureCount: number, error: Error) {
   return failureCount < 2
 }
 
+// networkMode 'always': por defecto Query "pausa" las peticiones si el navegador dice estar
+// sin conexión, y el botón se quedaría en "Entrando…" sin fin. Así la petición se intenta,
+// falla, y apiFetch muestra el mensaje de "No se pudo conectar con el servidor".
 export const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { retry: shouldRetry },
-    mutations: { retry: false },
+    queries: { retry: shouldRetry, networkMode: 'always' },
+    mutations: { retry: false, networkMode: 'always' },
   },
 })

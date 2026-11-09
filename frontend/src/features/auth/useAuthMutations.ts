@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 
 import { clearAccessToken } from '../../lib/api'
 import { login, logout, register } from './authApi'
-import { clearSessionData, sessionQueryKey } from './session'
+import { clearSessionData, sessionQueryKey, userDataKey } from './session'
 import type { LoginInput, RegisterInput, User } from './types'
 
 // La cuenta se creó pero el inicio de sesión automático falló (p. ej. se cortó la conexión).
@@ -34,6 +34,9 @@ export function useRegister() {
       try {
         return await login({ email: input.email, password: input.password })
       } catch {
+        // El login pudo guardar el token y fallar después (en /me): se borra para no dejar
+        // un token "huérfano" mientras la interfaz dice que no hay sesión.
+        clearAccessToken()
         throw new AccountCreatedError()
       }
     },
@@ -46,17 +49,31 @@ export function useLogout() {
   const navigate = useNavigate()
   return useMutation({
     mutationFn: async () => {
-      // Cancela peticiones en curso para que ninguna respuesta tardía rellene la caché.
-      await queryClient.cancelQueries()
+      // Cancela las peticiones del usuario en curso para que ninguna respuesta tardía
+      // rellene la caché. La de la sesión no: cancelarla la dejaría "cargando" para siempre.
+      await queryClient.cancelQueries({ queryKey: userDataKey })
+
+      let confirmed = true
       try {
         await logout()
       } catch {
-        // Aunque falle (sin conexión), en este navegador la sesión se cierra igual.
+        // Sin conexión: en este navegador la sesión se cierra igual, pero la cookie de
+        // refresh sigue viva en el servidor y al recargar la sesión volvería. Se avisa.
+        confirmed = false
       }
       clearAccessToken()
+
       // Primero se sale de la página actual: si se borrara la sesión estando en una ruta
-      // protegida, esta redirigiría a /login en vez de ir al inicio.
-      await navigate('/', { state: { notice: 'Cerraste sesión.' } })
+      // protegida, esta redirigiría a /login en vez de ir al inicio. flushSync hace que el
+      // cambio de página se pinte ya, antes de borrar la sesión.
+      await navigate('/', {
+        flushSync: true,
+        state: {
+          notice: confirmed
+            ? 'Cerraste sesión.'
+            : 'Saliste en este navegador, pero no pudimos confirmarlo con el servidor por un problema de conexión. Si usas un equipo compartido, cuando vuelvas a tener conexión recarga la página y cierra sesión de nuevo.',
+        },
+      })
       clearSessionData(queryClient)
     },
   })

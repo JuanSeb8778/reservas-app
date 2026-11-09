@@ -18,12 +18,18 @@ const NETWORK_ERROR = 'No se pudo conectar con el servidor. Revisa tu conexión 
 // Los formularios validan lo mismo con Zod antes de enviar, así que un 422 es raro: basta un
 // mensaje general en español.
 const VALIDATION_ERROR = 'Algunos datos no son válidos. Revísalos e inténtalo de nuevo.'
+const SERVER_ERROR = 'El servidor tuvo un problema. Inténtalo de nuevo en unos minutos.'
+const UNEXPECTED_ERROR = 'Ocurrió un error inesperado. Inténtalo de nuevo.'
 
+// Los mensajes de la API (`detail`) ya están en español y pensados para el usuario. Si no hay
+// `detail` (p. ej. un 500 en texto plano), se usa un mensaje propio: `statusText` viene en
+// inglés ("Internal Server Error").
 function toApiError(response: Response, body: unknown): ApiError {
   const detail = (body as { detail?: unknown } | undefined)?.detail
   if (typeof detail === 'string') return new ApiError(response.status, detail)
   if (response.status === 422) return new ApiError(response.status, VALIDATION_ERROR)
-  return new ApiError(response.status, response.statusText || 'Ocurrió un error inesperado.')
+  if (response.status >= 500) return new ApiError(response.status, SERVER_ERROR)
+  return new ApiError(response.status, UNEXPECTED_ERROR)
 }
 
 // Lee el cuerpo sin romperse con respuestas vacías (p. ej. 204 No Content del logout).
@@ -147,12 +153,13 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
     if (!canRefresh) throw error
 
     const refreshed = await refreshSession()
+    // Si se cerró sesión mientras se renovaba, esta petición pertenece a la sesión anterior:
+    // no se repite ni se toca la sesión actual (que puede ser un login nuevo).
+    if (epoch !== sessionEpoch) throw error
     if (!refreshed) {
       expireSession()
       throw error
     }
-    // Si se cerró sesión mientras se renovaba, no se repite la petición.
-    if (epoch !== sessionEpoch) throw error
     return request<T>(path, init)
   }
 }
