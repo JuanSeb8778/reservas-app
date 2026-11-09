@@ -5,19 +5,21 @@ import { RequireAdmin } from './features/auth/RequireAdmin'
 import { RequireAuth } from './features/auth/RequireAuth'
 import { AdminPage } from './pages/AdminPage'
 import { ErrorPage } from './pages/ErrorPage'
-import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { MyBookingsPage } from './pages/MyBookingsPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { ServicesPage } from './pages/ServicesPage'
 
-// Próximamente: /servicios, /reservar...
+// Próximamente: /reservar...
 export const router = createBrowserRouter([
   {
     element: <Layout />,
     errorElement: <ErrorPage />,
     children: [
-      { path: '/', element: <HomePage /> },
+      // La portada es la carta de servicios: en móvil no cabe un enlace más en la cabecera,
+      // y el logo "Reservas" ya lleva aquí.
+      { path: '/', element: <ServicesPage /> },
       { path: '/login', element: <LoginPage /> },
       { path: '/registro', element: <RegisterPage /> },
       {
