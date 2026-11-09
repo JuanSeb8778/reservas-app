@@ -7,7 +7,7 @@ Uso en un endpoint:
 
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -52,6 +52,33 @@ def get_current_user(
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def get_optional_user(
+    request: Request,
+    db: DbSession,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
+) -> User | None:
+    """Para endpoints públicos que muestran más cosas a un admin (p. ej. servicios inactivos).
+
+    Sin cabecera Authorization → None (visitante anónimo). Con un token inválido o caducado →
+    401, a propósito: así el frontend renueva el token en vez de recibir en silencio la vista
+    pública como si no hubiera iniciado sesión.
+    """
+    if credentials is None:
+        # HTTPBearer también devuelve None si la cabecera existe pero no es "Bearer <token>"
+        # (p. ej. "Basic ..."). Eso es una cabecera inválida, no un visitante anónimo.
+        if "authorization" in request.headers:
+            raise unauthorized("Token inválido o expirado")
+        return None
+    return get_current_user(db, credentials)
+
+
+OptionalUser = Annotated[User | None, Depends(get_optional_user)]
+
+
+def is_admin(user: User | None) -> bool:
+    return user is not None and user.role == UserRole.ADMIN
 
 
 def require_admin(user: CurrentUser) -> User:

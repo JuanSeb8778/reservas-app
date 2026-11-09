@@ -16,13 +16,19 @@ Más adelante se puede añadir una tabla `staff` para varios profesionales.
 | Tabla | Campos principales |
 | --- | --- |
 | `users` | id, email (único), hashed_password, full_name, role (`client`/`admin`), created_at |
-| `services` | id, name, description, duration_minutes, price (Numeric), is_active |
-| `business_hours` | id, weekday (0=lunes … 6=domingo), opens_at, closes_at |
+| `business_settings` | id (siempre 1), timezone (IANA, p. ej. `America/Bogota`), currency (ISO 4217, p. ej. `COP`) |
+| `services` | id, name (único sin distinguir mayúsculas), description, duration_minutes (5–480, múltiplo de 5), price (Numeric), is_active, created_at |
+| `business_hours` | id, weekday (0=lunes … 6=domingo), opens_at, closes_at (hora local del negocio; sin tramos solapados ni contiguos, garantizado con `EXCLUDE`) |
 | `bookings` | id, client_id → users, service_id → services, starts_at, ends_at, status (`confirmed`/`cancelled`), created_at |
 
 Reglas importantes:
-- Fechas y horas se guardan como `timestamptz` en UTC. La zona horaria del negocio va en la
-  configuración (`BUSINESS_TIMEZONE`) y se usa para calcular los horarios disponibles.
+- Fechas y horas se guardan como `timestamptz` en UTC. La zona horaria del negocio vive en la
+  tabla `business_settings` (la elige el administrador desde la app, no es una variable de
+  entorno) y se usa para calcular los horarios disponibles. Los clientes ven siempre la hora
+  del negocio; si su equipo está en otra zona, la interfaz lo indica ("hora de Bogotá").
+- La moneda también la elige el administrador. Cambiarla **no convierte** los precios.
+- Los servicios no se borran: se archivan con `is_active = false` (las citas los referencian).
+- `time` no puede representar 24:00: el cierre más tardío de un tramo es 23:59.
 - **No puede haber dos citas confirmadas que se solapen.** Se garantiza en la base de datos con
   una restricción de exclusión de PostgreSQL (extensión `btree_gist`):
   `EXCLUDE USING gist (tstzrange(starts_at, ends_at) WITH &&) WHERE (status = 'confirmed')`.
@@ -73,7 +79,9 @@ Limitaciones conocidas y pendientes (decididas al implementar la autenticación)
 - [x] Páginas de registro e inicio de sesión (React Hook Form + Zod), sesión con TanStack Query
       (`['auth','me']`, sin Context propio), renovación del token al recibir 401 y rutas
       protegidas (`RequireAuth`, `RequireAdmin`)
-- [ ] Modelos `Service` y `BusinessHours` + CRUD solo para admin + tests
+- [x] Modelos `Service` y `BusinessHours` + CRUD solo para admin + tests (más
+      `BusinessSettings` con zona horaria y moneda, y `OptionalUser` para rutas públicas que
+      muestran más a un admin)
 - [ ] Página pública de servicios
 - [ ] Endpoint `GET /api/availability?service_id=&date=` que devuelve los horarios libres + tests
 - [ ] Modelo `Booking` con restricción de exclusión + `POST /api/bookings` + tests de solapamiento
@@ -82,6 +90,11 @@ Limitaciones conocidas y pendientes (decididas al implementar la autenticación)
 
 ### Fase 2 – Funcionalidad completa
 - [ ] Panel de administración con vista de calendario (día/semana)
+- [ ] Pantallas de admin para servicios, horario y configuración del negocio. Zona horaria con
+      un botón "Detectar" que la sugiere con `Intl.DateTimeFormat().resolvedOptions().timeZone`
+      (sin pedir la ubicación) y el admin confirma o cambia; listas de zonas y monedas con
+      `Intl.supportedValuesOf`. Avisar de que cambiar la zona mueve la hora local en que se
+      muestran las citas y que cambiar la moneda no convierte los precios
 - [ ] Cancelar y reprogramar citas (cliente y admin), con reglas (p. ej. no cancelar con menos de 2 h)
 - [ ] Bloqueos de horario (vacaciones, festivos)
 - [ ] Correos de confirmación y cancelación (Resend o similar), enviados en segundo plano
