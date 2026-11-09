@@ -23,14 +23,20 @@ def replace_business_hours(
     # vieja y luego insertarían sus tramos, y el resultado mezclaría ambos horarios.
     # FOR UPDATE bloquea la fila única de configuración hasta el commit, así que el segundo
     # guardado espera a que termine el primero (y luego lo reemplaza entero).
+    # scalar_one(): si faltara la fila, un FOR UPDATE sin resultados no bloquearía nada y
+    # fallaría en silencio; así falla de forma visible.
     db.execute(
         select(BusinessSettings.id).where(BusinessSettings.id == SETTINGS_ID).with_for_update()
-    )
+    ).scalar_one()
     db.execute(delete(BusinessHours))
     db.add_all(BusinessHours(**r.model_dump(mode="python")) for r in ranges)
     try:
+        # Se lee el resultado antes del commit, todavía con el candado: después del commit otro
+        # guardado podría colarse y la respuesta mostraría su semana en vez de esta.
+        db.flush()
+        saved = list_business_hours(db)
         db.commit()
     except Exception:
         db.rollback()  # la semana anterior queda intacta
         raise
-    return list_business_hours(db)
+    return saved

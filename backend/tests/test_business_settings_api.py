@@ -50,7 +50,16 @@ def test_la_moneda_se_normaliza_y_se_quitan_espacios(client, admin):
 
 @pytest.mark.parametrize(
     "timezone",
-    ["Mars/Olympus", "america/bogota", "", "Bogota", "../etc/passwd", "UTC+5"],
+    [
+        "Mars/Olympus",
+        "america/bogota",
+        "",
+        "Bogota",
+        "../etc/passwd",
+        "UTC+5",
+        "localtime",  # la zona del servidor, no una zona real
+        "Factory",
+    ],
 )
 def test_rechaza_zonas_horarias_desconocidas(client, admin, timezone):
     response = client.put(

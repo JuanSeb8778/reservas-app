@@ -3,9 +3,10 @@
 from datetime import time
 
 import pytest
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import delete
+from sqlalchemy.exc import IntegrityError, NoResultFound
 
-from app.models import BusinessHours, UserRole
+from app.models import BusinessHours, BusinessSettings, UserRole
 from app.schemas.business_hours import BusinessHoursRange
 from app.services.business_hours import replace_business_hours
 from tests.helpers import auth_headers
@@ -132,6 +133,14 @@ def test_no_se_aceptan_mas_de_70_tramos(client, admin):
     response = client.put(URL, json={"ranges": ranges}, headers=auth_headers(admin))
 
     assert response.status_code == 422
+
+
+def test_sin_la_fila_de_configuracion_el_guardado_falla_de_forma_visible(db_session):
+    # El candado usa la fila de business_settings; si no existe, no debe "funcionar" sin él.
+    db_session.execute(delete(BusinessSettings))
+
+    with pytest.raises(NoResultFound):
+        replace_business_hours(db_session, [])
 
 
 def test_si_falla_al_guardar_se_conserva_la_semana_anterior(db_session, existing_week):

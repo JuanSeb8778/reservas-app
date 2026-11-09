@@ -82,9 +82,11 @@ def test_optional_user_con_token_valido_devuelve_el_usuario(admin_client, create
     assert response.json() == {"id": user.id, "is_admin": role == UserRole.ADMIN}
 
 
-def test_optional_user_con_token_invalido_devuelve_401(admin_client):
-    # Un token roto no se trata como "anónimo": el frontend debe enterarse y renovarlo.
-    response = admin_client.get("/opcional", headers={"Authorization": "Bearer roto"})
+@pytest.mark.parametrize("header", ["Bearer roto", "Basic dXNlcjpwYXNz", "Bearer", "token"])
+def test_optional_user_con_cabecera_invalida_devuelve_401(admin_client, header):
+    # Un token roto (o una cabecera que no es Bearer) no se trata como "anónimo": el frontend
+    # debe enterarse y renovar el token.
+    response = admin_client.get("/opcional", headers={"Authorization": header})
 
     assert response.status_code == 401
 

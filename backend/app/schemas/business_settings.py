@@ -6,11 +6,15 @@ from zoneinfo import available_timezones
 
 from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, StringConstraints
 
+# Nombres que aparecen en la lista del sistema pero no son zonas reales: "localtime" es la
+# zona del servidor (cambia según dónde se despliegue) y "Factory" es un marcador sin hora.
+_NOT_REAL_ZONES = {"localtime", "Factory"}
+
 
 @cache
 def _known_timezones() -> frozenset[str]:
     # La lista de zonas IANA del sistema (~500 nombres). Se calcula una sola vez.
-    return frozenset(available_timezones())
+    return frozenset(available_timezones() - _NOT_REAL_ZONES)
 
 
 def _validate_timezone(value: str) -> str:

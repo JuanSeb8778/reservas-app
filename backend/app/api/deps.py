@@ -7,7 +7,7 @@ Uso en un endpoint:
 
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -55,6 +55,7 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
 def get_optional_user(
+    request: Request,
     db: DbSession,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
 ) -> User | None:
@@ -65,6 +66,10 @@ def get_optional_user(
     pública como si no hubiera iniciado sesión.
     """
     if credentials is None:
+        # HTTPBearer también devuelve None si la cabecera existe pero no es "Bearer <token>"
+        # (p. ej. "Basic ..."). Eso es una cabecera inválida, no un visitante anónimo.
+        if "authorization" in request.headers:
+            raise unauthorized("Token inválido o expirado")
         return None
     return get_current_user(db, credentials)
 
