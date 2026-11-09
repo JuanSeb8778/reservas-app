@@ -7,7 +7,7 @@ Documentación interactiva: http://localhost:8000/docs
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, health
+from app.api.routes import auth, business_settings, health
 from app.core.config import get_settings
 
 settings = get_settings()
@@ -25,3 +25,4 @@ app.add_middleware(
 # Todas las rutas de la API cuelgan de /api
 app.include_router(health.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
+app.include_router(business_settings.router, prefix="/api")
