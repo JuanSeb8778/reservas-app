@@ -54,6 +54,28 @@ def get_current_user(
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
+def get_optional_user(
+    db: DbSession,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
+) -> User | None:
+    """Para endpoints públicos que muestran más cosas a un admin (p. ej. servicios inactivos).
+
+    Sin cabecera Authorization → None (visitante anónimo). Con un token inválido o caducado →
+    401, a propósito: así el frontend renueva el token en vez de recibir en silencio la vista
+    pública como si no hubiera iniciado sesión.
+    """
+    if credentials is None:
+        return None
+    return get_current_user(db, credentials)
+
+
+OptionalUser = Annotated[User | None, Depends(get_optional_user)]
+
+
+def is_admin(user: User | None) -> bool:
+    return user is not None and user.role == UserRole.ADMIN
+
+
 def require_admin(user: CurrentUser) -> User:
     if user.role != UserRole.ADMIN:
         raise HTTPException(

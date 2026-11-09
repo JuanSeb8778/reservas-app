@@ -1,7 +1,7 @@
-"""Tests de la dependencia `require_admin` (AdminUser).
+"""Tests de las dependencias `require_admin` (AdminUser) y `get_optional_user` (OptionalUser).
 
-Todavía no hay endpoints de admin, así que se monta una app mínima solo para el test, con
-una ruta protegida. Así no se añaden rutas de prueba a la app real.
+Se monta una app mínima solo para el test, con rutas que usan cada dependencia. Así no se
+añaden rutas de prueba a la app real.
 """
 
 from collections.abc import Generator
@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.api.deps import AdminUser
+from app.api.deps import AdminUser, OptionalUser, is_admin
 from app.db.session import get_db
 from app.models import UserRole
 from tests.helpers import auth_headers
@@ -22,6 +22,11 @@ admin_app = FastAPI()
 @admin_app.get("/solo-admin")
 def admin_only(admin: AdminUser) -> dict[str, int]:
     return {"id": admin.id}
+
+
+@admin_app.get("/opcional")
+def optional_user(user: OptionalUser) -> dict[str, int | bool | None]:
+    return {"id": user.id if user else None, "is_admin": is_admin(user)}
 
 
 @pytest.fixture
@@ -59,3 +64,35 @@ def test_require_admin_sin_token_devuelve_401(admin_client):
     response = admin_client.get("/solo-admin")
 
     assert response.status_code == 401
+
+
+def test_optional_user_sin_token_es_anonimo(admin_client):
+    response = admin_client.get("/opcional")
+
+    assert response.status_code == 200
+    assert response.json() == {"id": None, "is_admin": False}
+
+
+@pytest.mark.parametrize("role", [UserRole.CLIENT, UserRole.ADMIN])
+def test_optional_user_con_token_valido_devuelve_el_usuario(admin_client, create_user, role):
+    user = create_user(role=role)
+
+    response = admin_client.get("/opcional", headers=auth_headers(user))
+
+    assert response.json() == {"id": user.id, "is_admin": role == UserRole.ADMIN}
+
+
+def test_optional_user_con_token_invalido_devuelve_401(admin_client):
+    # Un token roto no se trata como "anónimo": el frontend debe enterarse y renovarlo.
+    response = admin_client.get("/opcional", headers={"Authorization": "Bearer roto"})
+
+    assert response.status_code == 401
+
+
+def test_optional_user_con_usuario_borrado_devuelve_401(admin_client, create_user, db_session):
+    user = create_user()
+    headers = auth_headers(user)
+    db_session.delete(user)
+    db_session.flush()
+
+    assert admin_client.get("/opcional", headers=headers).status_code == 401
