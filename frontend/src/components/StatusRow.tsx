@@ -1,21 +1,25 @@
-type Status = 'ok' | 'error' | 'loading'
+import { Skeleton } from './Skeleton'
 
-const styles: Record<Status, { dot: string; text: string }> = {
-  ok: { dot: 'bg-emerald-500', text: 'Funcionando' },
-  error: { dot: 'bg-rose-500', text: 'Sin conexión' },
-  loading: { dot: 'bg-stone-300 animate-pulse', text: 'Comprobando…' },
-}
+// waiting: cargando pero todavía no toca mostrar el skeleton (evita parpadeos).
+type Status = 'ok' | 'error' | 'loading' | 'waiting'
+
+const styles = {
+  ok: { dot: 'bg-ok', text: 'Funcionando' },
+  error: { dot: 'bg-danger', text: 'Sin conexión' },
+} as const
 
 export function StatusRow({ label, status }: { label: string; status: Status }) {
-  const { dot, text } = styles[status]
-
   return (
-    <li className="flex items-center justify-between py-3">
+    <li className="flex min-h-14 items-center justify-between gap-4 py-3">
       <span className="font-medium">{label}</span>
-      <span className="flex items-center gap-2 text-sm text-stone-600">
-        <span className={`size-2.5 rounded-full ${dot}`} aria-hidden />
-        {text}
-      </span>
+      {status === 'loading' && <Skeleton className="h-4 w-24" />}
+      {status === 'waiting' && <span className="h-4 w-24" />}
+      {(status === 'ok' || status === 'error') && (
+        <span className="flex items-center gap-2 text-sm text-muted">
+          <span className={`size-2.5 rounded-full ${styles[status].dot}`} aria-hidden="true" />
+          {styles[status].text}
+        </span>
+      )}
     </li>
   )
 }

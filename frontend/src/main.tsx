@@ -1,12 +1,21 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { RouterProvider } from 'react-router'
+// Desde 'react-router/dom' (y no 'react-router'): esta versión usa ReactDOM.flushSync, sin el
+// cual la opción navigate(..., { flushSync: true }) del logout no tendría efecto.
+import { RouterProvider } from 'react-router/dom'
 
+// Fuentes servidas desde nuestro propio servidor (no desde Google Fonts): así la IP de los
+// visitantes no se envía a terceros. opsz.css incluye los ejes de tamaño óptico y de peso.
+import '@fontsource-variable/bricolage-grotesque/opsz.css'
+import '@fontsource-variable/figtree'
+
+import { listenForSessionExpiry } from './features/auth/session'
 import './index.css'
+import { queryClient } from './lib/queryClient'
 import { router } from './router'
 
-const queryClient = new QueryClient()
+listenForSessionExpiry(queryClient)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

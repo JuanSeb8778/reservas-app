@@ -1,6 +1,7 @@
 # Entorno y secretos
 .env
 CLAUDE.local.md
+.claude/settings.local.json
 
 # Python
 .venv/
