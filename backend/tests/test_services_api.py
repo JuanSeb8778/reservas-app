@@ -120,6 +120,14 @@ def test_un_servicio_inexistente_da_404(client):
     assert response.json()["detail"] == "El servicio no existe"
 
 
+@pytest.mark.parametrize("service_id", ["0", "-1", "2147483648", "9223372036854775808", "abc"])
+def test_ids_imposibles_dan_422_y_no_llegan_a_la_base_de_datos(client, admin, service_id):
+    # 2147483648 no cabe en un INTEGER de Postgres: antes daba 500 ("integer out of range").
+    assert client.get(f"{URL}/{service_id}").status_code == 422
+    response = client.patch(f"{URL}/{service_id}", json={"price": "1"}, headers=auth_headers(admin))
+    assert response.status_code == 422
+
+
 # --- Crear ---------------------------------------------------------------------------------
 
 
