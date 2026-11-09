@@ -47,6 +47,10 @@ Limitaciones conocidas y pendientes (decididas al implementar la autenticación)
 - Sin límite de intentos en `/login` y `/register` (rate limiting) → Fase 3.
 - El registro devuelve 409 si el email existe, lo que permite saber qué emails están registrados.
   Es lo habitual en este tipo de app; se acepta.
+- Sin sincronización entre pestañas: cerrar sesión en una no afecta a otra hasta que su token
+  caduca (15 min). Mejora opcional: `BroadcastChannel`.
+- Si el logout no llega al servidor (sin conexión), la cookie sigue viva: la interfaz avisa al
+  usuario de que vuelva a cerrar sesión cuando tenga conexión.
 - **Despliegue:** con frontend y API en dominios distintos (Vercel + Render), `SameSite=Lax`
   impide enviar la cookie. Habrá que servir la API bajo el mismo dominio (rewrite de `/api` en
   Vercel) o usar `SameSite=None; Secure` con protección CSRF.
@@ -65,7 +69,10 @@ Limitaciones conocidas y pendientes (decididas al implementar la autenticación)
       ejecución; cada test en una transacción que se deshace (`tests/conftest.py`)
 - [x] Modelo `User` + migración
 - [x] Autenticación completa (registro, login, refresh, logout, me) + tests
-- [ ] Páginas de registro e inicio de sesión (React Hook Form + Zod), contexto de sesión y rutas protegidas
+- [x] Sistema de diseño "Tinta y resaltador" (tokens, tipografías, skeletons) → `docs/DESIGN.md`
+- [x] Páginas de registro e inicio de sesión (React Hook Form + Zod), sesión con TanStack Query
+      (`['auth','me']`, sin Context propio), renovación del token al recibir 401 y rutas
+      protegidas (`RequireAuth`, `RequireAdmin`)
 - [ ] Modelos `Service` y `BusinessHours` + CRUD solo para admin + tests
 - [ ] Página pública de servicios
 - [ ] Endpoint `GET /api/availability?service_id=&date=` que devuelve los horarios libres + tests
@@ -81,7 +88,9 @@ Limitaciones conocidas y pendientes (decididas al implementar la autenticación)
 - [ ] Script de datos de ejemplo (`seed`) con un admin y servicios de prueba
 
 ### Fase 3 – Calidad y despliegue
-- [ ] Cobertura de tests razonable en el backend; tests de componentes clave en el frontend (Vitest)
+- [ ] Cobertura de tests razonable en el backend; tests de componentes clave en el frontend (Vitest).
+      Empezar por la renovación del token de `src/lib/api.ts` y los esquemas de Zod (ya
+      verificados a mano con scripts en la Fase 1)
 - [x] GitHub Actions: lint + tests en cada push y pull request (adelantado a la Fase 1,
       `.github/workflows/ci.yml`)
 - [ ] Despliegue: backend + Postgres en Render o Railway, frontend en Vercel
