@@ -12,7 +12,8 @@ export function Layout() {
         </nav>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-10">
+      {/* Cada página decide su ancho (Page para las normales, AuthLayout para el acceso). */}
+      <main>
         <Outlet />
       </main>
     </div>

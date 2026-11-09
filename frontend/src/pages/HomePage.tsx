@@ -1,8 +1,11 @@
+import { Page } from '../components/Page'
 import { StatusRow } from '../components/StatusRow'
 import { useHealth } from '../features/health/useHealth'
 import { useDelayedFlag } from '../lib/useDelayedFlag'
+import { useDocumentTitle } from '../lib/useDocumentTitle'
 
 export function HomePage() {
+  useDocumentTitle('Inicio')
   const { data, isPending, isError } = useHealth()
   const showSkeleton = useDelayedFlag(isPending)
 
@@ -11,7 +14,7 @@ export function HomePage() {
   const dbStatus = isPending ? pending : isError ? 'error' : data.database
 
   return (
-    <section className="space-y-8">
+    <Page className="space-y-8">
       <div className="space-y-2">
         <h1 tabIndex={-1} className="text-4xl font-bold">
           Reservas
@@ -47,6 +50,6 @@ export function HomePage() {
           localhost:8000/docs
         </a>
       </p>
-    </section>
+    </Page>
   )
 }
