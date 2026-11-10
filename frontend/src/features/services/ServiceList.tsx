@@ -28,7 +28,7 @@ function ServiceItem({ service, currency }: { service: Service; currency?: strin
         </h3>
         <span
           aria-hidden="true"
-          className="mb-[0.4em] min-w-4 flex-1 border-b-2 border-dotted border-field/50"
+          className="mb-[0.4em] min-w-6 flex-1 border-b-2 border-dotted border-field/50"
         />
         {/* El precio visual ("$ 25.000") se oculta a los lectores de pantalla, que leen la
             versión con el nombre de la moneda ("25.000 pesos colombianos"). */}
@@ -83,12 +83,11 @@ export function ServiceListEmpty() {
           El negocio todavía está preparando su carta. Vuelve pronto.
         </p>
       </div>
+      {/* Solo los puntos guía, sin bloques grises: con bloques parecería que sigue cargando. */}
       <ul aria-hidden="true" className="mt-5">
-        {['w-1/3', 'w-1/2', 'w-1/4'].map((width) => (
-          <li key={width} className="flex h-12 items-end gap-2 border-t border-line px-5 pb-3 sm:px-8">
-            <span className={`h-3 rounded-[4px] bg-line ${width}`} />
-            <span className="mb-0.5 flex-1 border-b-2 border-dotted border-line" />
-            <span className="h-3 w-12 rounded-[4px] bg-line" />
+        {[0, 1, 2].map((row) => (
+          <li key={row} className="flex h-12 items-end px-5 pb-3 sm:px-8">
+            <span className="flex-1 border-b-2 border-dotted border-line" />
           </li>
         ))}
       </ul>

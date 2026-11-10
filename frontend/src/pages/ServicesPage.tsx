@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode, type RefObject } from 'react'
+import { useRef, useState, type ReactNode, type RefObject } from 'react'
 import { useLocation } from 'react-router'
 
 import { Notice } from '../components/Notice'
@@ -14,6 +14,10 @@ import { useServices } from '../features/services/useServices'
 import { getNotice } from '../lib/navigationState'
 import { useDelayedFlag } from '../lib/useDelayedFlag'
 import { useDocumentTitle } from '../lib/useDocumentTitle'
+
+// Título de cada hoja: una etiqueta pequeña dentro del panel, como el encabezado de una agenda.
+const SHEET_HEADING =
+  'scroll-mt-6 font-sans text-xs font-semibold tracking-[0.14em] text-muted uppercase'
 
 // Portada pública: la carta de servicios y el horario del negocio. Se pide todo en paralelo;
 // cada zona tiene su propio skeleton y su propio error, así un fallo en el horario no impide
@@ -35,11 +39,17 @@ export function ServicesPage() {
 
   const servicesHeading = useRef<HTMLHeadingElement>(null)
   const hoursHeading = useRef<HTMLHeadingElement>(null)
-  useFocusAfterRecovery(services.isError, servicesHeading)
-  useFocusAfterRecovery(hours.isError, hoursHeading)
+  const servicesRetry = useZoneError(services, servicesHeading, () =>
+    Promise.all([services.refetch(), settings.isError ? settings.refetch() : null]).then(
+      ([result]) => result,
+    ),
+  )
+  const hoursRetry = useZoneError(hours, hoursHeading, () => hours.refetch())
+  const servicesError = servicesRetry.error
+  const hoursError = hoursRetry.error
 
   return (
-    <Page>
+    <Page className="max-w-6xl">
       <div className="mb-8 lg:mb-10">
         <h1 tabIndex={-1} className="text-[1.875rem] leading-[1.1] font-bold sm:text-4xl">
           Nuestros <span className="marker">servicios</span>
@@ -49,9 +59,9 @@ export function ServicesPage() {
 
       {notice && <Notice className="mb-8">{notice}</Notice>}
 
-      {/* Resumen de hoy (solo móvil): en escritorio el horario completo ya está a la vista. */}
-      {/* Sin horario publicado, o si algo falló, no se muestra: el panel del horario ya lo dice. */}
-      {!hours.isError && !settings.isError && (hours.isPending || hours.data.ranges.length > 0) && (
+      {/* Resumen de hoy (solo móvil): en escritorio el horario completo ya está a la vista.
+          Sin horario publicado, o si algo falló, no se muestra: el panel del horario ya lo dice. */}
+      {!hoursError && !settings.isError && (hours.isPending || (hours.data?.ranges.length ?? 0) > 0) && (
         <div className="mb-8 flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 lg:hidden">
           <Loadable
             pending={hours.isPending || settingsPending}
@@ -73,7 +83,7 @@ export function ServicesPage() {
         </div>
       )}
 
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-12 xl:gap-16">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-12 xl:gap-16">
         <section
           aria-labelledby="services-heading"
           className="self-start overflow-hidden rounded-panel border border-line bg-surface"
@@ -82,21 +92,18 @@ export function ServicesPage() {
             id="services-heading"
             ref={servicesHeading}
             tabIndex={-1}
-            className="px-5 pt-5 font-sans text-xs font-semibold tracking-[0.14em] text-muted uppercase sm:px-8 sm:pt-6"
+            className={`${SHEET_HEADING} px-5 pt-5 sm:px-8 sm:pt-6`}
           >
             Servicios
           </h2>
           <div className="pb-2">
-            {services.isError ? (
+            {servicesError ? (
               <div className="px-5 py-5 sm:px-8">
                 <QueryError
                   title="No pudimos cargar los servicios."
-                  message={services.error.message}
-                  retrying={services.isFetching}
-                  onRetry={() => {
-                    void services.refetch()
-                    if (settings.isError) void settings.refetch()
-                  }}
+                  message={servicesError.message}
+                  retrying={servicesRetry.retrying}
+                  onRetry={servicesRetry.retry}
                 />
               </div>
             ) : (
@@ -118,13 +125,11 @@ export function ServicesPage() {
           </div>
         </section>
 
-        <aside aria-labelledby="horario" className="lg:sticky lg:top-8 lg:self-start">
-          <h2
-            id="horario"
-            ref={hoursHeading}
-            tabIndex={-1}
-            className="scroll-mt-6 text-xl font-bold sm:text-2xl"
-          >
+        <section
+          aria-labelledby="horario"
+          className="self-start rounded-panel border border-line bg-surface px-5 pt-5 pb-2 sm:pt-6 lg:sticky lg:top-8"
+        >
+          <h2 id="horario" ref={hoursHeading} tabIndex={-1} className={SHEET_HEADING}>
             Horario de atención
           </h2>
           {showTimezoneNote && timezone && (
@@ -133,14 +138,14 @@ export function ServicesPage() {
               <span>Las horas están en la zona del negocio ({timezoneLabel(timezone)}).</span>
             </p>
           )}
-          <div className="mt-4 rounded-panel border border-line bg-surface px-5 py-2">
-            {hours.isError ? (
+          <div className="mt-2">
+            {hoursError ? (
               <div className="py-3">
                 <QueryError
                   title="No pudimos cargar el horario."
-                  message={hours.error.message}
-                  retrying={hours.isFetching}
-                  onRetry={() => void hours.refetch()}
+                  message={hoursError.message}
+                  retrying={hoursRetry.retrying}
+                  onRetry={hoursRetry.retry}
                 />
               </div>
             ) : (
@@ -153,7 +158,7 @@ export function ServicesPage() {
               </Loadable>
             )}
           </div>
-        </aside>
+        </section>
       </div>
     </Page>
   )
@@ -179,15 +184,35 @@ function Loadable({
   return children
 }
 
-// Si el usuario pulsó "Reintentar" y la carga salió bien, el botón desaparece y el foco se
-// quedaría en el vacío (body). Se lleva al título de la zona para que el teclado y el lector
-// de pantalla sigan donde estaban.
-function useFocusAfterRecovery(isError: boolean, heading: RefObject<HTMLHeadingElement | null>) {
-  const wasError = useRef(false)
-  useEffect(() => {
-    if (wasError.current && !isError && document.activeElement === document.body) {
-      heading.current?.focus()
-    }
-    wasError.current = isError
-  }, [isError, heading])
+type ZoneQuery = { data: unknown; error: Error | null; isFetching: boolean }
+
+// Error de una zona y su botón "Reintentar".
+// - Si ya hay datos y falla una recarga en segundo plano, se siguen mostrando los datos.
+// - Al volver a pedir una consulta que nunca tuvo datos (con el botón o sola, al volver a la
+//   pestaña), TanStack Query la devuelve a "pending" y borra el error: el mensaje y el botón
+//   desaparecerían a mitad de la carga y el foco caería en el vacío. Por eso se recuerda el
+//   último error mientras dura la carga: el botón sigue ahí ("Reintentando…", con el foco)
+//   hasta saber el resultado.
+// - Si el reintento con el botón sale bien, el botón desaparece y el foco pasa al título de la
+//   zona; si falla, se queda en el botón.
+function useZoneError(
+  query: ZoneQuery,
+  heading: RefObject<HTMLHeadingElement | null>,
+  refetch: () => Promise<{ isSuccess: boolean }>,
+) {
+  const current = query.data === undefined ? query.error : null
+  const [lastError, setLastError] = useState<Error | null>(null)
+  // Ajuste de estado durante el render (patrón recomendado por React en vez de un efecto):
+  // se guarda cada error nuevo y se olvida cuando la carga termina sin error.
+  if (current && current !== lastError) setLastError(current)
+  if (!current && !query.isFetching && lastError) setLastError(null)
+
+  const error = current ?? (query.isFetching ? lastError : null)
+
+  async function retry() {
+    const result = await refetch()
+    if (result.isSuccess) heading.current?.focus()
+  }
+
+  return { error, retrying: error !== null && query.isFetching, retry }
 }
