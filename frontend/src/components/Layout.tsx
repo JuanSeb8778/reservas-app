@@ -50,7 +50,7 @@ function SessionNav() {
           <span className="sm:hidden">Entrar</span>
           <span className="hidden sm:inline">Iniciar sesión</span>
         </NavLink>
-        <NavLink to="/registro" className={buttonClasses('primary', 'px-3 sm:px-4')}>
+        <NavLink to="/registro" className={buttonClasses('primary', 'px-3 whitespace-nowrap sm:px-4')}>
           Crear cuenta
         </NavLink>
       </nav>
