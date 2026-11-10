@@ -55,6 +55,10 @@ Limitaciones conocidas y pendientes (decididas al implementar la autenticación)
   Es lo habitual en este tipo de app; se acepta.
 - Sin sincronización entre pestañas: cerrar sesión en una no afecta a otra hasta que su token
   caduca (15 min). Mejora opcional: `BroadcastChannel`.
+- Si el access token caducó y la renovación también falla (p. ej. se cerró sesión en otra
+  pestaña), `GET /api/services` responde 401 una vez y la portada muestra un error; "Reintentar"
+  ya funciona porque la sesión quedó cerrada. Mejora opcional: que `apiFetch` repita las
+  peticiones públicas sin token tras una renovación fallida.
 - Si el logout no llega al servidor (sin conexión), la cookie sigue viva: la interfaz avisa al
   usuario de que vuelva a cerrar sesión cuando tenga conexión.
 - **Despliegue:** con frontend y API en dominios distintos (Vercel + Render), `SameSite=Lax`
@@ -82,7 +86,9 @@ Limitaciones conocidas y pendientes (decididas al implementar la autenticación)
 - [x] Modelos `Service` y `BusinessHours` + CRUD solo para admin + tests (más
       `BusinessSettings` con zona horaria y moneda, y `OptionalUser` para rutas públicas que
       muestran más a un admin)
-- [ ] Página pública de servicios
+- [x] Página pública de servicios: es la portada (`/`). Carta de precios con la moneda del
+      negocio y horario semanal con el día de hoy (en la zona del negocio); aviso de zona
+      horaria solo si el reloj del visitante marca otra hora. Reemplaza al panel de salud
 - [ ] Endpoint `GET /api/availability?service_id=&date=` que devuelve los horarios libres + tests
 - [ ] Modelo `Booking` con restricción de exclusión + `POST /api/bookings` + tests de solapamiento
 - [ ] Flujo de reserva en el frontend (elegir servicio → día → hora → confirmar)
